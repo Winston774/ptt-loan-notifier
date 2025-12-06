@@ -216,6 +216,29 @@ async def get_stats(db: Session = Depends(get_db)):
     }
 
 
+# ==================== 測試 API ====================
+
+@app.post("/test-notification")
+async def test_notification(
+    line_user_id: str = Query(..., description="LINE User ID"),
+    db: Session = Depends(get_db)
+):
+    """測試 LINE 通知功能"""
+    from notification.line_bot import push_message_to_user
+    
+    try:
+        success = push_message_to_user(
+            line_user_id,
+            "🎉 測試成功！\n\n你的 PTT 借貸版通知系統已正確設定。\n\n當有新的信貸相關文章時，你會收到通知！"
+        )
+        if success:
+            return {"status": "success", "message": "測試通知已發送"}
+        else:
+            return {"status": "error", "message": "通知發送失敗，請檢查 LINE_CHANNEL_TOKEN 設定"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"發送失敗: {str(e)}")
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
