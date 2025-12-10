@@ -38,7 +38,21 @@ def create_article_flex_message(title: str, author: str, url: str, post_time: Op
     Returns:
         Flex Message JSON
     """
-    time_str = post_time.strftime("%Y/%m/%d %H:%M") if post_time else "未知時間"
+    import pytz
+    from config import settings
+    
+    if post_time:
+        # 確保時間以台北時區顯示
+        tz = pytz.timezone(settings.TIMEZONE)
+        if post_time.tzinfo is None:
+            # 如果沒有時區資訊，假設是 UTC，轉換為台北時間
+            post_time = pytz.utc.localize(post_time).astimezone(tz)
+        else:
+            # 如果有時區資訊，直接轉換
+            post_time = post_time.astimezone(tz)
+        time_str = post_time.strftime("%Y/%m/%d %H:%M")
+    else:
+        time_str = "未知時間"
     
     return {
         "type": "bubble",
