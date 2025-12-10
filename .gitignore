@@ -45,3 +45,6 @@ env/
 # OS
 .DS_Store
 Thumbs.db
+
+# Auto-mail feature (local testing only)
+auto_mail/
