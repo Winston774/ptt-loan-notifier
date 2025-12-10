@@ -137,6 +137,11 @@ async def list_jobs():
 
 from fastapi import Request, Header
 
+@app.get("/webhook")
+async def line_webhook_verify():
+    """LINE Webhook 驗證用 (GET)"""
+    return {"status": "ok"}
+
 @app.post("/webhook")
 async def line_webhook(
     request: Request,
