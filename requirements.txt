@@ -10,7 +10,3 @@ apscheduler>=3.10.0
 line-bot-sdk>=3.14.0
 python-dotenv>=1.0.0
 pytz>=2023.3
-
-# 自動站內信功能依賴
-PyPtt>=1.0.0
-google-generativeai>=0.3.0
