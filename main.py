@@ -136,7 +136,6 @@ async def list_jobs():
 # ==================== LINE Webhook ====================
 
 from fastapi import Request, Header
-from notification.line_bot import handler
 
 @app.post("/webhook")
 async def line_webhook(
