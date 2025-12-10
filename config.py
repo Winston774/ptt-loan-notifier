@@ -36,6 +36,7 @@ class Settings(BaseSettings):
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"
+        extra = "ignore"  # 忽略其他環境變數 (如 auto_mail 的設定)
 
 
 settings = Settings()
