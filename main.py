@@ -133,6 +133,62 @@ async def list_jobs():
     return {"jobs": jobs}
 
 
+# ==================== LINE Webhook ====================
+
+from fastapi import Request, Header
+from notification.line_bot import handler
+
+@app.post("/webhook")
+async def line_webhook(
+    request: Request,
+    x_line_signature: str = Header(None),
+    db: Session = Depends(get_db)
+):
+    """LINE Bot Webhook - 接收用戶訊息並自動註冊"""
+    body = await request.body()
+    body_text = body.decode('utf-8')
+    
+    try:
+        # 解析事件
+        import json
+        events = json.loads(body_text).get('events', [])
+        
+        for event in events:
+            # 取得用戶 ID
+            user_id = event.get('source', {}).get('userId')
+            if user_id:
+                # 自動註冊用戶（如果不存在）
+                user = crud.get_or_create_user(db, user_id, UserTier.STANDARD)
+                logger.info(f"用戶已註冊/確認: {user_id}, 等級: {user.tier.value}")
+                
+                # 如果是訊息事件，回覆歡迎訊息
+                event_type = event.get('type')
+                if event_type == 'follow':
+                    # 新加入好友
+                    from notification.line_bot import push_message_to_user
+                    push_message_to_user(
+                        user_id,
+                        "🎉 歡迎加入 PTT 信貸通知！\n\n"
+                        "您已被設為 Standard 會員，將於每小時收到通知。\n"
+                        f"您的 User ID: {user_id}"
+                    )
+                elif event_type == 'message':
+                    # 用戶發送訊息
+                    from notification.line_bot import push_message_to_user
+                    push_message_to_user(
+                        user_id,
+                        f"✅ 您已註冊成功！\n\n"
+                        f"會員等級: {user.tier.value.upper()}\n"
+                        f"User ID: {user_id}\n\n"
+                        "當有信貸相關文章時，您會收到通知！"
+                    )
+        
+        return {"status": "ok"}
+    except Exception as e:
+        logger.error(f"Webhook 處理錯誤: {e}")
+        return {"status": "error", "message": str(e)}
+
+
 # ==================== 用戶管理 API ====================
 
 @app.post("/users")
