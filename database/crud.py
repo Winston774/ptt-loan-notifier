@@ -58,15 +58,15 @@ def delete_old_articles(db: Session) -> int:
 
 # ==================== User CRUD ====================
 
-def get_user_by_line_id(db: Session, line_user_id: str) -> Optional[User]:
-    """根據 LINE User ID 查詢用戶"""
-    return db.query(User).filter(User.line_user_id == line_user_id).first()
+def get_user_by_telegram_id(db: Session, telegram_user_id: str) -> Optional[User]:
+    """根據 Telegram User ID 查詢用戶"""
+    return db.query(User).filter(User.telegram_user_id == telegram_user_id).first()
 
 
-def create_user(db: Session, line_user_id: str, tier: UserTier = UserTier.STANDARD) -> User:
+def create_user(db: Session, telegram_user_id: str, tier: UserTier = UserTier.STANDARD) -> User:
     """建立新用戶"""
     db_user = User(
-        line_user_id=line_user_id,
+        telegram_user_id=telegram_user_id,
         tier=tier,
         is_active=True
     )
@@ -76,11 +76,11 @@ def create_user(db: Session, line_user_id: str, tier: UserTier = UserTier.STANDA
     return db_user
 
 
-def get_or_create_user(db: Session, line_user_id: str, tier: UserTier = UserTier.STANDARD) -> User:
+def get_or_create_user(db: Session, telegram_user_id: str, tier: UserTier = UserTier.STANDARD) -> User:
     """取得用戶，若不存在則建立"""
-    user = get_user_by_line_id(db, line_user_id)
+    user = get_user_by_telegram_id(db, telegram_user_id)
     if not user:
-        user = create_user(db, line_user_id, tier)
+        user = create_user(db, telegram_user_id, tier)
     return user
 
 
@@ -96,9 +96,9 @@ def get_all_active_users(db: Session) -> List[User]:
     return db.query(User).filter(User.is_active == True).all()
 
 
-def update_user_tier(db: Session, line_user_id: str, tier: UserTier) -> Optional[User]:
+def update_user_tier(db: Session, telegram_user_id: str, tier: UserTier) -> Optional[User]:
     """更新用戶等級"""
-    user = get_user_by_line_id(db, line_user_id)
+    user = get_user_by_telegram_id(db, telegram_user_id)
     if user:
         user.tier = tier
         db.commit()

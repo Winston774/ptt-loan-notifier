@@ -48,7 +48,7 @@ class User(Base):
     __tablename__ = "users"
     
     id = Column(Integer, primary_key=True, index=True)
-    line_user_id = Column(String(50), unique=True, index=True, nullable=False)  # LINE User ID
+    telegram_user_id = Column(String(50), unique=True, index=True, nullable=False)  # Telegram User ID
     tier = Column(SQLEnum(UserTier), default=UserTier.STANDARD, nullable=False)  # 會員等級
     is_active = Column(Boolean, default=True, nullable=False)  # 是否啟用通知
     created_at = Column(DateTime, default=datetime.utcnow)  # 註冊時間

@@ -9,9 +9,9 @@ class Settings(BaseSettings):
     # 資料庫設定
     DATABASE_URL: str = "postgresql://user:password@localhost:5432/ptt_crawler"
     
-    # LINE Bot 設定
-    LINE_CHANNEL_TOKEN: str = ""
-    LINE_CHANNEL_SECRET: str = ""
+    # Telegram Bot 設定
+    TELEGRAM_BOT_TOKEN: str = ""
+    WEB_DOMAIN: str = ""  # Zeabur 提供的網域名稱 (例如: your-app.zeabur.app)
     
     # PTT 設定
     PTT_BOARD_URL: str = "https://www.ptt.cc/bbs/Loan/index.html"

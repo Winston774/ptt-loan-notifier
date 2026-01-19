@@ -9,7 +9,7 @@ from config import settings
 from database.models import SessionLocal, UserTier
 from database import crud
 from crawler.ptt_scraper import crawl_new_articles
-from notification.line_bot import push_article_notification, push_batch_notification
+from notification.telegram_bot import push_article_notification, push_batch_notification
 
 # 設定 logging
 logging.basicConfig(level=logging.INFO)
@@ -23,7 +23,7 @@ def is_within_schedule_hours() -> bool:
     return settings.SCHEDULE_START_HOUR <= now.hour < settings.SCHEDULE_END_HOUR
 
 
-def crawl_and_notify():
+async def crawl_and_notify():
     """
     主要排程任務：抓取新文章並通知用戶
     
@@ -81,8 +81,8 @@ def crawl_and_notify():
             
             # Premium 用戶即時通知
             for user in premium_users:
-                success = push_article_notification(
-                    user_id=user.line_user_id,
+                success = await push_article_notification(
+                    user_id=user.telegram_user_id,
                     title=db_article.title,
                     author=db_article.author,
                     url=db_article.url,
@@ -107,7 +107,7 @@ def crawl_and_notify():
         db.close()
 
 
-def send_hourly_notifications():
+async def send_hourly_notifications():
     """
     每小時執行：發送 Standard 用戶的累積通知
     """
@@ -139,7 +139,7 @@ def send_hourly_notifications():
                 notification_ids.append(notification.id)
             
             # 發送批次通知
-            success = push_batch_notification(user.line_user_id, articles)
+            success = await push_batch_notification(user.telegram_user_id, articles)
             
             if success:
                 # 標記為已發送
