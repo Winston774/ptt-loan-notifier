@@ -94,7 +94,19 @@ def init_db():
             print("偵測到舊版資料庫結構，正在新增 telegram_user_id 欄位...")
             conn.execute(text("ALTER TABLE users ADD COLUMN telegram_user_id VARCHAR(50) UNIQUE"))
             conn.commit()
-            print("遷移完成。")
+            print("telegram_user_id 欄位新增完成。")
+            
+        # 檢查是否存在 line_user_id 且具有 NOT NULL 限制
+        result = conn.execute(text(
+            "SELECT is_nullable FROM information_schema.columns "
+            "WHERE table_name='users' AND column_name='line_user_id'"
+        ))
+        row = result.fetchone()
+        if row and row[0] == 'NO':
+            print("正在移除 line_user_id 的 NOT NULL 限制...")
+            conn.execute(text("ALTER TABLE users ALTER COLUMN line_user_id DROP NOT NULL"))
+            conn.commit()
+            print("限制移除完成代。")
 
 
 def get_db():
