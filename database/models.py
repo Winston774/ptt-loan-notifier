@@ -79,8 +79,22 @@ class Notification(Base):
 
 
 def init_db():
-    """初始化資料庫，建立所有表格"""
+    """初始化資料庫，建立所有表格並處理必要的遷移"""
     Base.metadata.create_all(bind=engine)
+    
+    # 執行手動遷移 (如果從舊版 LINE Bot 遷移)
+    from sqlalchemy import text
+    with engine.connect() as conn:
+        # 檢查 users 表是否有 telegram_user_id 欄位
+        result = conn.execute(text(
+            "SELECT column_name FROM information_schema.columns "
+            "WHERE table_name='users' AND column_name='telegram_user_id'"
+        ))
+        if not result.fetchone():
+            print("偵測到舊版資料庫結構，正在新增 telegram_user_id 欄位...")
+            conn.execute(text("ALTER TABLE users ADD COLUMN telegram_user_id VARCHAR(50) UNIQUE"))
+            conn.commit()
+            print("遷移完成。")
 
 
 def get_db():
