@@ -53,8 +53,8 @@ async def crawl_and_notify():
         
         # 取得所有啟用的用戶
         all_users = crud.get_all_active_users(db)
-        premium_users = [u for u in all_users if u.tier == UserTier.PREMIUM]
-        standard_users = [u for u in all_users if u.tier == UserTier.STANDARD]
+        premium_users = [u for u in all_users if u.tier == UserTier.PREMIUM and u.telegram_user_id]
+        standard_users = [u for u in all_users if u.tier == UserTier.STANDARD and u.telegram_user_id]
         
         for article_data in articles:
             article_id = article_data.get('article_id')
@@ -119,7 +119,7 @@ async def send_hourly_notifications():
     db = SessionLocal()
     try:
         # 取得所有 Standard 用戶
-        standard_users = crud.get_active_users_by_tier(db, UserTier.STANDARD)
+        standard_users = [u for u in crud.get_active_users_by_tier(db, UserTier.STANDARD) if u.telegram_user_id]
         
         for user in standard_users:
             # 取得待發送通知
