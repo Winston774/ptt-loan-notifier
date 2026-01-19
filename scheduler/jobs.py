@@ -61,37 +61,40 @@ async def crawl_and_notify():
             if not article_id:
                 continue
             
-            # 檢查是否已存在
+            # 檢查是否已存在於資料庫
             existing = crud.get_article_by_ptt_id(db, article_id)
-            if existing:
-                logger.debug(f"文章已存在: {article_id}")
-                continue
             
-            # 儲存新文章
-            db_article = crud.create_article(
-                db=db,
-                article_id=article_id,
-                title=article_data.get('title', ''),
-                author=article_data.get('author', ''),
-                content=article_data.get('content', ''),
-                url=article_data.get('url', ''),
-                post_time=article_data.get('post_time')
-            )
-            logger.info(f"新增文章: {db_article.title[:30]}...")
+            if not existing:
+                # 儲存新文章
+                db_article = crud.create_article(
+                    db=db,
+                    article_id=article_id,
+                    title=article_data.get('title', ''),
+                    author=article_data.get('author', ''),
+                    content=article_data.get('content', ''),
+                    url=article_data.get('url', ''),
+                    post_time=article_data.get('post_time')
+                )
+                logger.info(f"新增文章: {db_article.title[:30]}...")
+            else:
+                db_article = existing
+                logger.debug(f"文章已存在，檢查是否需要補發通知: {article_id}")
             
             # Premium 用戶即時通知
             for user in premium_users:
-                success = await push_article_notification(
-                    user_id=user.telegram_user_id,
-                    title=db_article.title,
-                    author=db_article.author,
-                    url=db_article.url,
-                    post_time=db_article.post_time
-                )
-                if success:
-                    # 建立已發送的通知記錄
-                    notification = crud.create_notification(db, user.id, db_article.id)
-                    crud.mark_notification_sent(db, notification.id)
+                # 只有沒收到過這篇通知的才發送
+                if not crud.has_notification_for_article(db, user.id, db_article.id):
+                    success = await push_article_notification(
+                        user_id=user.telegram_user_id,
+                        title=db_article.title,
+                        author=db_article.author,
+                        url=db_article.url,
+                        post_time=db_article.post_time
+                    )
+                    if success:
+                        # 建立已發送的通知記錄
+                        notification = crud.create_notification(db, user.id, db_article.id)
+                        crud.mark_notification_sent(db, notification.id)
             
             # Standard 用戶建立待發送通知
             for user in standard_users:
